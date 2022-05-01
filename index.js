@@ -18,8 +18,6 @@
 
 // require all packages
 const mysql = require('mysql2');
-
-
 const inquirer = require('inquirer');
 const cTable = require('console.table');
 
@@ -51,31 +49,6 @@ const deptPrompt = {
     message: "Please enter the name of the new department: ",
     name: "deptName",
 };
-
-// Create inquirer questions to enter employee's first name, last name, role, and manager when added
-
-const employeePrompt = [{
-    type: "input",
-    message: "Please enter the employee's first name: ",
-    name: "empFirstName"
-    },
-    {
-    type: "input",
-    message: "Please enter the employee's last name: ",
-    name: "empLastName"
-    },
-    {
-    type: "input",
-    message: "Please enter the role id for the new employee's role: ",
-    name: "empRole"
-    },
-    {
-    type: "input",
-    message: "Please enter the manager's employee id for the new employee's manager (leave blank if no manager): ",
-    name: "empManager",
-    default: null
-    }
-];
 
 // Create inquirer choice to select employee to update and allow their role to be updated
 const updateEmployeePrompt = [{
@@ -159,7 +132,7 @@ const viewRoles = () => {
     .then( () => openMenu());
 };
 
-function addRole() {
+const addRole = () => {
     let sql = "SELECT * FROM department";
     db.query(sql, (err, result) => {
         if (err) throw err;
@@ -171,7 +144,7 @@ function addRole() {
             },
             {
                 type: "number",
-                message: "What is the salary for this position? (Please enter two decimal places)",
+                message: "What is the salary for this position?",
                 name: "roleSalary",
             },
             {
@@ -203,17 +176,6 @@ function addRole() {
     });
 };
 
-const genRole = (data) => {
-    const {roleTitle, roleSalary, roleDept} = data;
-    // for loop to check database for department name based on dept id
-    const params = [roleTitle, roleSalary, roleDept];
-    const sql = `INSERT INTO role (title, salary, dept_id) VALUES (?, ?, ?)`;
-    db.promise().query(sql, params)
-    .then(`Added new role`)
-    .catch(console.log)
-    .then( () => openMenu());
-};
-
 const viewEmployees = () => {
     const sql = "SELECT * FROM employee";
 
@@ -226,10 +188,41 @@ const viewEmployees = () => {
 };
 
 const addEmployee = () => {
-    inquirer
-    .prompt(employeePrompt)
-    .then((response) => {
-        genEmployee(response);
+    let sql = "SELECT * FROM employee";
+    db.query(sql, (err, result) => {
+        if (err) throw err;
+        inquirer.prompt([
+            {
+                type: "input",
+                message: "Please enter the employee's first name: ",
+                name: "firstName"
+            },
+            {
+                type: "input",
+                message: "Please enter the employee's last name: ",
+                name: "lastName"
+            },
+            {
+                type: "list",
+                message: "Please select the new employee's role: ",
+                choices: () => {
+                    const choices = [];
+                    for (let i = 0; i < result.length; i++) {
+                        choices.push(result[i].name);
+                    }
+                    return choices;
+                },
+                name: "empRole"
+            }
+        ]).then(answer => {
+            let role_id;
+            for (let i = 0; i < result.length; i++) {
+                if (result[i].title === answer.empRole) {
+                    role_id = result[i].id
+                }
+            }
+            sql = "INSERT INTO employee (firstName, lastName, role_id)"
+        })
     })
 };
 
