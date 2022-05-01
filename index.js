@@ -91,7 +91,8 @@ const employeePrompt = [{
     {
     type: "input",
     message: "Please enter the manager's employee id for the new employee's manager (leave blank if no manager): ",
-    name: "empManager"
+    name: "empManager",
+    default: null
     }
 ];
 
@@ -123,21 +124,21 @@ const openMenu = () => {
     .prompt(mainMenu)
     .then((response) => {
         switch (response.mainMenu) {
-            // case 'View All Employees':
-            //     viewEmps();
-            //     break;
-            // case 'Add Employee':
-            //     addEmp();
-            //     break;
+            case 'View All Employees':
+                viewEmployees();
+                break;
+            case 'Add Employee':
+                addEmployee();
+                break;
             // case 'Update Employee Role':
             //     updateEmp();
             //     break;
             case 'View All Roles':
                 viewRoles();
                 break;
-            // case 'Add Role':
-            //     addRole();
-            //     break;
+            case 'Add Role':
+                addRole();
+                break;
             case 'View All Departments':
                 viewDepts();
                 break;
@@ -169,7 +170,6 @@ const addDept = () => {
 };
 
 const genDept = (data) => {
-    console.log('data', data);
     const {deptName} = data;
     const params = [deptName];
     const sql = `INSERT INTO department (name) VALUES (?)`;
@@ -179,14 +179,64 @@ const genDept = (data) => {
     .then( () => openMenu());
 };
 
-// Role functions to view and create roles
+// Role functions to view and create roles. Currently not functionally because join doesn't work
 const viewRoles = () => {
-    const sql = "SELECT * FROM role";
+    const sql = `SELECT role.id AS id, role.title AS title, department.name AS department, role.salary AS salary FROM role JOIN department ON role.dept_id = department.id`;
 
     db.promise().query(sql)
     .then(([rows, fields]) => {
         console.table(rows);
     })
+    .catch(console.log)
+    .then( () => openMenu());
+};
+
+const addRole = () => {
+    inquirer
+    .prompt(rolePrompt)
+    .then((response) => {
+        genRole(response);
+    })
+};
+
+const genRole = (data) => {
+    const {roleTitle, roleSalary, roleDept} = data;
+    const params = [roleTitle, roleSalary, roleDept];
+    const sql = `INSERT INTO role (title, salary, dept_id) VALUES (?, ?, ?)`;
+    db.promise().query(sql, params)
+    .then(`Added new role`)
+    .catch(console.log)
+    .then( () => openMenu());
+};
+
+const viewEmployees = () => {
+    const sql = "SELECT * FROM employee";
+
+    db.promise().query(sql)
+    .then(([rows, fields]) => {
+        console.table(rows);
+    })
+    .catch(console.log)
+    .then( () => openMenu());
+};
+
+const addEmployee = () => {
+    inquirer
+    .prompt(employeePrompt)
+    .then((response) => {
+        genEmployee(response);
+    })
+};
+
+const genEmployee = (data) => {
+    let {empFirstName, empLastName, empRole, empManager} = data;
+    const params = [empFirstName, empLastName, empRole, empManager];
+    if (empManager === '') {
+        empManager = null;
+    }
+    const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`;
+    db.promise().query(sql, params)
+    .then(`Added new employee`)
     .catch(console.log)
     .then( () => openMenu());
 };
