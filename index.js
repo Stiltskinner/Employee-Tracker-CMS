@@ -33,7 +33,7 @@ const db = mysql.createConnection(
       // MySQL username,
       user: 'root',
       // MySQL password
-      password: '',
+      password: 'Killfascists?',
       database: 'empTracker_db'
     },
     console.log(`Connected to employee tracker database`)
@@ -118,6 +118,37 @@ const updateEmployeePrompt = [{
 //     })
 // };
 
+const openMenu = () => {
+    inquirer
+    .prompt(mainMenu)
+    .then((response) => {
+        switch (response.mainMenu) {
+            // case 'View All Employees':
+            //     viewEmps();
+            //     break;
+            // case 'Add Employee':
+            //     addEmp();
+            //     break;
+            // case 'Update Employee Role':
+            //     updateEmp();
+            //     break;
+            case 'View All Roles':
+                viewRoles();
+                break;
+            // case 'Add Role':
+            //     addRole();
+            //     break;
+            case 'View All Departments':
+                viewDepts();
+                break;
+            case 'Add Department':
+                addDept();
+                break;
+        }
+    })
+};
+
+// Department functions to view and create departments
 const viewDepts = () => {
     const sql = "SELECT * FROM department";
 
@@ -126,10 +157,41 @@ const viewDepts = () => {
         console.table(rows);
     })
     .catch(console.log)
-    .then( () => db.end());
+    .then( () => openMenu());
 };
 
-viewDepts();
+const addDept = () => {
+    inquirer
+    .prompt(deptPrompt)
+    .then((response) => {
+        genDept(response);
+    })
+};
+
+const genDept = (data) => {
+    console.log('data', data);
+    const {deptName} = data;
+    const params = [deptName];
+    const sql = `INSERT INTO department (name) VALUES (?)`;
+    db.promise().query(sql, params)
+    .then(`Added new department: ${deptName}`)
+    .catch(console.log)
+    .then( () => openMenu());
+};
+
+// Role functions to view and create roles
+const viewRoles = () => {
+    const sql = "SELECT * FROM role";
+
+    db.promise().query(sql)
+    .then(([rows, fields]) => {
+        console.table(rows);
+    })
+    .catch(console.log)
+    .then( () => openMenu());
+};
+
+openMenu();
 // Create db query for roles to show all roles, job title, role id, the department that role belongs to, and the salary for that role
 
 // Create db query for employees to show all employees including employee ids, first names, last names, job titles, departments, salaries, and managers that the employees report to
