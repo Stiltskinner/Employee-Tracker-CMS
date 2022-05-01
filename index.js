@@ -24,8 +24,6 @@ const inquirer = require('inquirer');
 const cTable = require('console.table');
 
 // Array of current employees
-// Needs a function to push employees to array every time they are created, would also need a way to create this array by reading teh employees table
-let allEmployees = [];
 
 const db = mysql.createConnection(
     {
@@ -53,23 +51,6 @@ const deptPrompt = {
     message: "Please enter the name of the new department: ",
     name: "deptName",
 };
-// Create inquirer questions to enter the name, salary, and department when a role is added
-const rolePrompt = [{
-    type: "input",
-    message: "Please enter the role title: ",
-    name: "roleTitle"
-    },
-    {
-    type: "input",
-    message: "Please enter the salary of the new role: ",
-    name: "roleSalary"
-    },
-    {
-    type: "input",
-    message: "Please enter the department id the new role belongs in: ",
-    name: "roleDept"
-    }
-];
 
 // Create inquirer questions to enter employee's first name, last name, role, and manager when added
 
@@ -102,22 +83,9 @@ const updateEmployeePrompt = [{
     message: "Please choose an employee to update their role",
     name: "employee",
     // allemployees will need to use an array of the employees to generate a list of choices
-    choices: allEmployees
+    // choices: allEmployees
 }];
 
-
-// Create db query for departments to show department names and id
-// const viewDepts = () => {
-//     const sql = "SELECT * FROM department";
-
-//     db.promise().query(sql, (err, result) => {
-//         if (err) {
-//             console.error(err);
-//             return;
-//         }
-//         console.table(result);
-//     })
-// };
 
 const openMenu = () => {
     inquirer
@@ -179,7 +147,7 @@ const genDept = (data) => {
     .then( () => openMenu());
 };
 
-// Role functions to view and create roles. Currently not functionally because join doesn't work
+// Role functions to view and create roles.
 const viewRoles = () => {
     const sql = `SELECT role.id AS id, role.title AS title, department.name AS department, role.salary AS salary FROM role JOIN department ON role.dept_id = department.id`;
 
@@ -191,16 +159,53 @@ const viewRoles = () => {
     .then( () => openMenu());
 };
 
-const addRole = () => {
-    inquirer
-    .prompt(rolePrompt)
-    .then((response) => {
-        genRole(response);
-    })
+function addRole() {
+    let sql = "SELECT * FROM department";
+    db.query(sql, (err, result) => {
+        if (err) throw err;
+        inquirer.prompt([
+            {
+                type: "input",
+                message: "What is the title of this role?",
+                name: "roleTitle",
+            },
+            {
+                type: "number",
+                message: "What is the salary for this position? (Please enter two decimal places)",
+                name: "roleSalary",
+            },
+            {
+                type: "list",
+                message: "Please choose a department",
+                choices: () => {
+                    const choices = [];
+                    for (let i = 0; i < result.length; i++) {
+                        choices.push(result[i].name);
+                    }
+                    return choices;
+                },
+                name: "department"
+            }
+        ]).then(answer => {
+            let dept_id;
+            for (let i = 0; i < result.length; i++) {
+                if (result[i].name === answer.department) {
+                    dept_id = result[i].id;
+                }
+            }
+            sql = "INSERT INTO role (title, salary, dept_id) VALUES (?, ?, ?)";
+            db.query(sql, [answer.roleTitle, answer.roleSalary, dept_id], (err, res) => {
+                if (err) throw err;
+
+                openMenu();
+            });
+        });
+    });
 };
 
 const genRole = (data) => {
     const {roleTitle, roleSalary, roleDept} = data;
+    // for loop to check database for department name based on dept id
     const params = [roleTitle, roleSalary, roleDept];
     const sql = `INSERT INTO role (title, salary, dept_id) VALUES (?, ?, ?)`;
     db.promise().query(sql, params)
