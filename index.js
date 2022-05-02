@@ -1,7 +1,7 @@
 // require all packages
 const mysql = require('mysql2');
 const inquirer = require('inquirer');
-const cTable = require('console.table');
+const consoleTable = require('console.table');
 
 // create database connection
 
@@ -79,7 +79,8 @@ const viewDepts = () => {
 
     db.promise().query(sql)
     .then(([rows, fields]) => {
-        console.table(rows);
+        const table = consoleTable.getTable(rows);
+        console.log(table);
     })
     .catch(console.log)
     .then( () => openMenu());
@@ -109,7 +110,8 @@ const viewRoles = () => {
 
     db.promise().query(sql)
     .then(([rows, fields]) => {
-        console.table(rows);
+        const table = consoleTable.getTable(rows);
+        console.log(table);
     })
     .catch(console.log)
     .then( () => openMenu());
@@ -164,7 +166,8 @@ const viewEmployees = () => {
 
     db.promise().query(sql)
     .then(([rows, fields]) => {
-        console.table(rows);
+        const table = consoleTable.getTable(rows);
+        console.log(table);
     })
     .catch(console.log)
     .then( () => openMenu());
