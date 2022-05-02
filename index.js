@@ -227,14 +227,13 @@ const addEmployeeRole = (firstName, lastName) => {
 };
 
 const addEmployeeManager = (firstName, lastName, title) => {
-    console.log("addemployeemanager", firstName, lastName, title);
     let sql = "SELECT id, first_name, last_name FROM employee";
     db.query(sql, (err, response) => {
         if (err) throw err;
         inquirer.prompt([
             {
                 type: "list",
-                message: "Please select a manger for this employee",
+                message: "Please select a manager for this employee",
                 choices: () => {
                     const choices = [];
                     for (let i = 0; i < response.length; i++) {
@@ -247,8 +246,13 @@ const addEmployeeManager = (firstName, lastName, title) => {
             }
         ]).then(answer => {
             let employee_id;
-            for (let i = 0; i <result.length; i++) {
-            }
+            const managerName = answer.manager.split(" ");
+            for (let i = 0; i <response.length; i++) {
+                if (response[i].first_name === managerName[0] && response[i].last_name === managerName[1]) {
+                    employee_id = response[i].id;
+                }
+            };
+            return employee_id;
         })
     })
 }
