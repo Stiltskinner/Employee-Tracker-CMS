@@ -178,7 +178,6 @@ const addRole = () => {
 
 const viewEmployees = () => {
     const sql = "SELECT * FROM employee";
-
     db.promise().query(sql)
     .then(([rows, fields]) => {
         console.table(rows);
@@ -188,56 +187,66 @@ const viewEmployees = () => {
 };
 
 const addEmployee = () => {
-    let sql = "SELECT * FROM employee";
-    db.query(sql, (err, result) => {
+    let query = "SELECT first_name, last_name FROM employee";
+    db.query(query, (err, empResponse) => {
         if (err) throw err;
         inquirer.prompt([
             {
-                type: "input",
-                message: "Please enter the employee's first name: ",
-                name: "firstName"
-            },
-            {
-                type: "input",
-                message: "Please enter the employee's last name: ",
-                name: "lastName"
-            },
-            {
                 type: "list",
-                message: "Please select the new employee's role: ",
+                message: "Please select a manger for this employee",
                 choices: () => {
                     const choices = [];
-                    for (let i = 0; i < result.length; i++) {
-                        choices.push(result[i].name);
+                    for (let i = 0; i < empResponse.length; i++) {
+                        let currName = `${empResponse[i].first_name} ${empResponse[i].last_name}`;
+                        choices.push(currName);
                     }
                     return choices;
                 },
-                name: "empRole"
+                name: "manager"
             }
-        ]).then(answer => {
-            let role_id;
-            for (let i = 0; i < result.length; i++) {
-                if (result[i].title === answer.empRole) {
-                    role_id = result[i].id
-                }
-            }
-            sql = "INSERT INTO employee (firstName, lastName, role_id)"
-        })
+        ])
     })
+        let sql = "SELECT * FROM role";
+        db.query(sql, (err, roleResponse) => {
+            if (err) throw err;
+            inquirer.prompt([
+                {
+                    type: "input",
+                    message: "Please enter the employee's first name: ",
+                    name: "firstName"
+                },
+                {
+                    type: "input",
+                    message: "Please enter the employee's last name: ",
+                    name: "lastName"
+                },
+                {
+                    type: "list",
+                    message: "Please select the new employee's role: ",
+                    choices: () => {
+                        const choices = [];
+                        for (let i = 0; i < roleResponse.length; i++) {
+                            choices.push(roleResponse[i].title);
+                        }
+                        return choices;
+                    },
+                    name: "empRole"
+                }
+            ]).then(answer => {
+                let role_id;
+                let firstName = answer.firstName;
+                let lastName = answer.lastName;
+                for (let i = 0; i < roleResponse.length; i++) {
+                    if (roleResponse[i].title === answer.empRole) {
+                        role_id = roleResponse[i].id
+                    }
+                }
+                
+            }).then()
+        })
 };
 
-const genEmployee = (data) => {
-    let {empFirstName, empLastName, empRole, empManager} = data;
-    const params = [empFirstName, empLastName, empRole, empManager];
-    if (empManager === '') {
-        empManager = null;
-    }
-    const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`;
-    db.promise().query(sql, params)
-    .then(`Added new employee`)
-    .catch(console.log)
-    .then( () => openMenu());
-};
+// sql = "INSERT INTO employee (first_name, last_name, role_id)"
 
 openMenu();
 // Create db query for roles to show all roles, job title, role id, the department that role belongs to, and the salary for that role
