@@ -241,7 +241,7 @@ const addEmployeeManager = (firstName, lastName, role_id) => {
                 type: "list",
                 message: "Please select a manager for this employee",
                 choices: () => {
-                    const choices = [];
+                    const choices = ["None"];
                     for (let i = 0; i < response.length; i++) {
                         let currName = `${response[i].first_name} ${response[i].last_name}`;
                         choices.push(currName);
@@ -251,6 +251,10 @@ const addEmployeeManager = (firstName, lastName, role_id) => {
                 name: "manager"
             }
         ]).then(answer => {
+            if (answer.manager === "None") {
+                addEmployee(firstName, lastName, role_id, null);
+                return;
+            }
             let manager_id;
             const managerName = answer.manager.split(" ");
             for (let i = 0; i <response.length; i++) {
