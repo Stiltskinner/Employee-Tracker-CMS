@@ -69,7 +69,7 @@ const openMenu = () => {
                 viewEmployees();
                 break;
             case 'Add Employee':
-                addEmployee();
+                addEmployeeName();
                 break;
             // case 'Update Employee Role':
             //     updateEmp();
@@ -186,9 +186,50 @@ const viewEmployees = () => {
     .then( () => openMenu());
 };
 
-const addEmployee = () => {
-    let query = "SELECT first_name, last_name FROM employee";
-    db.query(query, (err, empResponse) => {
+const addEmployeeName = () => {
+    inquirer.prompt([
+        {
+            type: "input",
+            message: "Please enter the employee's first name: ",
+            name: "firstName"
+        },
+        {
+            type: "input",
+            message: "Please enter the employee's last name: ",
+            name: "lastName"
+        }
+    ]).then(answers => {
+        addEmployeeRole(answers.firstName.trim(), answers.lastName.trim());
+    });
+}
+
+const addEmployeeRole = (firstName, lastName) => {
+    let sql = "SELECT * FROM role";
+    db.query(sql, (err, response) => {
+        if (err) throw err;
+        inquirer.prompt([
+            {
+                type: "list",
+                message: "Please select the new employee's role: ",
+                choices: () => {
+                    const choices = [];
+                    for (let i = 0; i < response.length; i++) {
+                        choices.push(response[i].title);
+                    }
+                    return choices;
+                },
+                name: "empRole"
+            },
+        ]).then(answer => {
+            addEmployeeManager(firstName, lastName, answer.empRole);            
+        })
+    })
+};
+
+const addEmployeeManager = (firstName, lastName, title) => {
+    console.log("addemployeemanager", firstName, lastName, title);
+    let sql = "SELECT id, first_name, last_name FROM employee";
+    db.query(sql, (err, response) => {
         if (err) throw err;
         inquirer.prompt([
             {
@@ -196,57 +237,25 @@ const addEmployee = () => {
                 message: "Please select a manger for this employee",
                 choices: () => {
                     const choices = [];
-                    for (let i = 0; i < empResponse.length; i++) {
-                        let currName = `${empResponse[i].first_name} ${empResponse[i].last_name}`;
+                    for (let i = 0; i < response.length; i++) {
+                        let currName = `${response[i].first_name} ${response[i].last_name}`;
                         choices.push(currName);
                     }
                     return choices;
                 },
                 name: "manager"
             }
-        ])
-    })
-        let sql = "SELECT * FROM role";
-        db.query(sql, (err, roleResponse) => {
-            if (err) throw err;
-            inquirer.prompt([
-                {
-                    type: "input",
-                    message: "Please enter the employee's first name: ",
-                    name: "firstName"
-                },
-                {
-                    type: "input",
-                    message: "Please enter the employee's last name: ",
-                    name: "lastName"
-                },
-                {
-                    type: "list",
-                    message: "Please select the new employee's role: ",
-                    choices: () => {
-                        const choices = [];
-                        for (let i = 0; i < roleResponse.length; i++) {
-                            choices.push(roleResponse[i].title);
-                        }
-                        return choices;
-                    },
-                    name: "empRole"
-                }
-            ]).then(answer => {
-                let role_id;
-                let firstName = answer.firstName;
-                let lastName = answer.lastName;
-                for (let i = 0; i < roleResponse.length; i++) {
-                    if (roleResponse[i].title === answer.empRole) {
-                        role_id = roleResponse[i].id
-                    }
-                }
-                
-            }).then()
+        ]).then(answer => {
+            let employee_id;
+            for (let i = 0; i <result.length; i++) {
+            }
         })
-};
+    })
+}
 
-// sql = "INSERT INTO employee (first_name, last_name, role_id)"
+// const addEmployee = () => {
+
+// };
 
 openMenu();
 // Create db query for roles to show all roles, job title, role id, the department that role belongs to, and the salary for that role
