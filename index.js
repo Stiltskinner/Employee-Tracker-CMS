@@ -176,8 +176,24 @@ const addRole = () => {
     });
 };
 
+// const employeeArr = [];
+//         for (let i = 0; i<rows.length; i++) {
+//             const currentRow = Array.from(rows[i]);
+//             if(rows[i].manager_id !== null) 
+//                 {
+//                 const currManagerId = rows[i].manager_id;
+//                 const currManagerName = `${rows[currManagerId].first_name} ${rows[currManagerId].last_name}`;
+//                 currentRow.splice(6, 1, currManagerName);
+//                 employeeArr.push(currentRow);
+//                 }
+//             else {
+//                 employeeArr.push(rows[i]);
+//             }
+//         }
+
 const viewEmployees = () => {
-    const sql = "SELECT * FROM employee";
+    const sql = `SELECT a.id AS id, a.first_name AS first_name, a.last_name AS last_name, role.title AS title, department.name AS department, role.salary AS salary, CONCAT(b.first_name, ' ', b.last_name) AS manager FROM employee a LEFT JOIN employee b ON a.manager_id = b.id JOIN role ON a.role_id = role.id JOIN department ON role.dept_id = department.id `;
+
     db.promise().query(sql)
     .then(([rows, fields]) => {
         console.table(rows);
