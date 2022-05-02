@@ -221,12 +221,18 @@ const addEmployeeRole = (firstName, lastName) => {
                 name: "empRole"
             },
         ]).then(answer => {
-            addEmployeeManager(firstName, lastName, answer.empRole);            
+            let role_id;
+            for (let i = 0; i< response.length; i++) {
+                if (response[i].title === answer.empRole) {
+                    role_id = response[i].id;
+                }
+            }
+            addEmployeeManager(firstName, lastName, role_id);            
         })
     })
 };
 
-const addEmployeeManager = (firstName, lastName, title) => {
+const addEmployeeManager = (firstName, lastName, role_id) => {
     let sql = "SELECT id, first_name, last_name FROM employee";
     db.query(sql, (err, response) => {
         if (err) throw err;
@@ -245,21 +251,26 @@ const addEmployeeManager = (firstName, lastName, title) => {
                 name: "manager"
             }
         ]).then(answer => {
-            let employee_id;
+            let manager_id;
             const managerName = answer.manager.split(" ");
             for (let i = 0; i <response.length; i++) {
                 if (response[i].first_name === managerName[0] && response[i].last_name === managerName[1]) {
-                    employee_id = response[i].id;
+                    manager_id = response[i].id;
                 }
             };
-            return employee_id;
+            addEmployee(firstName, lastName, role_id, manager_id);
         })
     })
 }
 
-// const addEmployee = () => {
-
-// };
+const addEmployee = (firstName, lastName, role_id, manager_id) => {
+    let sql = "INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)";
+    db.query(sql, [firstName, lastName, role_id, manager_id], (err, res) => {
+        if (err) throw err;
+        console.log(`New Employee ${firstName} ${lastName} added to database`);
+        openMenu();
+    })
+};
 
 openMenu();
 // Create db query for roles to show all roles, job title, role id, the department that role belongs to, and the salary for that role
