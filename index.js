@@ -11,7 +11,7 @@ const db = mysql.createConnection(
       // MySQL username,
       user: 'root',
       // MySQL password
-      password: 'Killfascists?',
+      password: 'VerySecure8',
       database: 'empTracker_db'
     },
     console.log(`Connected to employee tracker database`)
@@ -33,6 +33,11 @@ const deptPrompt = {
 };
 
 const init = () => {
+    console.log("************************************************")
+    console.log("*                                              *")
+    console.log("*               EMPLOYEE MANAGER               *")
+    console.log("*                                              *")
+    console.log("************************************************")
     openMenu()
 };
 
